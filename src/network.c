@@ -49,11 +49,13 @@ load_args get_base_args(network *net)
     args.hue = net->hue;
     return args;
 }
-
+//xk20181016
 network *load_network(char *cfg, char *weights, int clear)
 {
+   //解析yolo.cfg文件（主要是解析网络模型的结构，包括网络的层数，每层网络的参数类型，参数）
     network *net = parse_network_cfg(cfg);
     if(weights && weights[0] != 0){
+      //加载预训练的权重。
         load_weights(net, weights);
     }
     if(clear) (*net->seen) = 0;

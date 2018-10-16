@@ -738,12 +738,14 @@ int is_network(section *s)
     return (strcmp(s->type, "[net]")==0
             || strcmp(s->type, "[network]")==0);
 }
-
+//xk20181016
 network *parse_network_cfg(char *filename)
 {
+    //读取网络模型的结构，存于双向链表中
     list *sections = read_cfg(filename);
     node *n = sections->front;
     if(!n) error("Config file has no sections");
+    //根据配置文件中参数创建网络模型
     network *net = make_network(sections->size - 1);
     net->gpu_index = gpu_index;
     size_params params;

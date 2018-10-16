@@ -557,17 +557,23 @@ void validate_detector_recall(char *cfgfile, char *weightfile)
         free_image(sized);
     }
 }
-
-
+//xk20181016
+//测试单张图片./darknet detect cfg/yolov3.cfg yolov3.weights data/dog.jpg -thresh 0
 void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh, char *outfile, int fullscreen)
 {
+    //读取cfg文件（类似ini文件key=value），存储于双向链表
     list *options = read_data_cfg(datacfg);
+    //从option中查找names对应的value，如没有，使用默认值“data/names.list”
     char *name_list = option_find_str(options, "names", "data/names.list");
+    //获取所有类别名称，对应xml中定义的分类
     char **names = get_labels(name_list);
-
+    //从data/labels/下加载ASCII码32-127的8种尺寸的图片，后边显示标签用。
     image **alphabet = load_alphabet();
+    //加载之前训练的超参（权重等），这个函数之后详解
     network *net = load_network(cfgfile, weightfile, 0);
+    //设置每层batch为1
     set_batch_network(net, 1);
+    //srand函数是随机数发生器的初始化函数
     srand(2222222);
     double time;
     char buff[256];
@@ -575,6 +581,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
     float nms=.45;
     while(1){
         if(filename){
+	  //C 库函数 char *strncpy(char *dest, const char *src, size_t n) 把 src 所指向的字符串复制到 dest，最多复制 n 个字符。当 src 的长度小于 n 时，dest 的剩余部分将用空字节填充。
             strncpy(input, filename, 256);
         } else {
             printf("Enter Image Path: ");
@@ -583,7 +590,9 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
             if(!input) return;
             strtok(input, "\n");
         }
+        //加载图片，默认当做彩色处理
         image im = load_image_color(input,0,0);
+	//调整图片尺寸
         image sized = letterbox_image(im, net->w, net->h);
         //image sized = resize_image(im, net->w, net->h);
         //image sized2 = resize_max(im, net->w);
@@ -594,6 +603,7 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
 
         float *X = sized.data;
         time=what_time_is_it_now();
+	//预测
         network_predict(net, X);
         printf("%s: Predicted in %f seconds.\n", input, what_time_is_it_now()-time);
         int nboxes = 0;
@@ -601,8 +611,10 @@ void test_detector(char *datacfg, char *cfgfile, char *weightfile, char *filenam
         //printf("%d\n", nboxes);
         //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
         if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
+	//画预测结果
         draw_detections(im, dets, nboxes, thresh, names, alphabet, l.classes);
         free_detections(dets, nboxes);
+	//保存标记了预测标签的图片
         if(outfile){
             save_image(im, outfile);
         }
