@@ -797,7 +797,7 @@ void network_detect(network *net, image im, float thresh, float hier_thresh, flo
     if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
 }
 */
-
+//xk20181016 demo
 void run_detector(int argc, char **argv)
 {
     char *prefix = find_char_arg(argc, argv, "-prefix", 0);

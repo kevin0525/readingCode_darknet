@@ -24,7 +24,7 @@ IplImage *image_to_ipl(image im)
     }
     return disp;
 }
-
+//xk20181016
 image ipl_to_image(IplImage* src)
 {
     int h = src->height;
@@ -57,7 +57,7 @@ Mat image_to_mat(image im)
     free_image(copy);
     return m;
 }
-
+//xk20181016
 image mat_to_image(Mat m)
 {
     IplImage ipl = m;
@@ -86,7 +86,7 @@ image get_image_from_stream(void *p)
     if(m.empty()) return make_empty_image(0,0,0);
     return mat_to_image(m);
 }
-
+//xk 20181016
 image load_image_cv(char *filename, int channels)
 {
     int flag = -1;

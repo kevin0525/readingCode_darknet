@@ -523,7 +523,7 @@ image copy_image(image p)
     memcpy(copy.data, p.data, p.h*p.w*p.c*sizeof(float));
     return copy;
 }
-
+//xk20181016
 void rgbgr_image(image im)
 {
     int i;
@@ -604,7 +604,7 @@ image make_empty_image(int w, int h, int c)
     out.c = c;
     return out;
 }
-
+//xk 20181016  make image
 image make_image(int w, int h, int c)
 {
     image out = make_empty_image(w,h,c);
@@ -1313,7 +1313,7 @@ image load_image_stb(char *filename, int channels)
     free(data);
     return im;
 }
-
+//xk20181016 load image
 image load_image(char *filename, int w, int h, int c)
 {
 #ifdef OPENCV
@@ -1329,7 +1329,7 @@ image load_image(char *filename, int w, int h, int c)
     }
     return out;
 }
-
+//xk20181016
 image load_image_color(char *filename, int w, int h)
 {
     return load_image(filename, w, h, 3);

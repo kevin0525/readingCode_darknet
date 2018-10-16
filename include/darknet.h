@@ -515,7 +515,7 @@ typedef struct {
 typedef struct{
     float x, y, w, h;
 } box;
-
+//xk20181016  detection of boxes
 typedef struct detection{
     box bbox;
     int classes;
