@@ -21,6 +21,7 @@ extern void run_go(int argc, char **argv);
 extern void run_art(int argc, char **argv);
 extern void run_super(int argc, char **argv);
 extern void run_lsd(int argc, char **argv);
+extern void detectUsingOpencv();
 
 void average(int argc, char *argv[])
 {
@@ -397,15 +398,86 @@ void visualize(char *cfgfile, char *weightfile)
     visualize_network(net);
 }
 
+void predict_xk(char* datacfg, char* cfgfile, char* weightfile, char* filename, float thresh, float hier_thresh, char* outfile, int fullscreen)
+{
+    //读取cfg文件（类似ini文件key=value），存储于双向链表
+    list *options = read_data_cfg(datacfg);
+    //从option中查找names对应的value，如没有，使用默认值“data/names.list”
+    char *name_list = option_find_str(options, "names", "data/names.list");
+    //获取所有类别名称，对应xml中定义的分类
+    char **names = get_labels(name_list);
+    //从data/labels/下加载ASCII码32-127的8种尺寸的图片，后边显示标签用。
+    image **alphabet = load_alphabet();
+    //加载之前训练的超参（权重等），这个函数之后详解
+    network *net = load_network(cfgfile, weightfile, 0);
+    //设置每层batch为1
+    set_batch_network(net, 1);
+    //srand函数是随机数发生器的初始化函数
+    srand(2222222);
+    double time;
+    char buff[256];
+    char *input = buff;
+    float nms=.45;
+    while(1){
+        if(filename){
+	  //C 库函数 char *strncpy(char *dest, const char *src, size_t n) 把 src 所指向的字符串复制到 dest，最多复制 n 个字符。当 src 的长度小于 n 时，dest 的剩余部分将用空字节填充。
+            strncpy(input, filename, 256);
+        } else {
+            printf("Enter Image Path: ");
+            fflush(stdout);
+            input = fgets(input, 256, stdin);
+            if(!input) return;
+            strtok(input, "\n");
+        }
+        //加载图片，默认当做彩色处理
+        image im = load_image_color(input,0,0);
+	//调整图片尺寸
+        image sized = letterbox_image(im, net->w, net->h);
+        //image sized = resize_image(im, net->w, net->h);
+        //image sized2 = resize_max(im, net->w);
+        //image sized = crop_image(sized2, -((net->w - sized2.w)/2), -((net->h - sized2.h)/2), net->w, net->h);
+        //resize_network(net, sized.w, sized.h);
+        layer l = net->layers[net->n-1];
+
+
+        float *X = sized.data;
+        time=what_time_is_it_now();
+	//预测
+        network_predict(net, X);
+        printf("%s: Predicted in %f seconds.\n", input, what_time_is_it_now()-time);
+        int nboxes = 0;
+        detection *dets = get_network_boxes(net, im.w, im.h, thresh, hier_thresh, 0, 1, &nboxes);
+        //printf("%d\n", nboxes);
+        //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
+        if (nms) do_nms_sort(dets, nboxes, l.classes, nms);
+	//画预测结果
+	//xk20181017
+	printf("number of perdiction: %d.\n",nboxes);printf("l.classes: %d.\n",l.classes);
+	for(int kevin = 0;kevin <nboxes;kevin ++){
+	  printf("dets[%d].bbox: %f,%f,%f,%f.\n",kevin,dets[kevin].bbox.x,dets[kevin].bbox.y,dets[kevin].bbox.w,dets[kevin].bbox.h);
+	}
+        draw_detections(im, dets, nboxes, thresh, names, alphabet, l.classes);
+        free_detections(dets, nboxes);
+	//保存标记了预测标签的图片
+        if(outfile){
+            save_image(im, outfile);
+        }
+        else{
+            save_image(im, "predictions");
+#ifdef OPENCV
+            make_window("predictions", 512, 512, 0);
+            show_image(im, "predictions", 0);
+#endif
+        }
+
+        free_image(im);
+        free_image(sized);
+        if (filename) break;
+    }
+}
+
 int main(int argc, char **argv)
 {
-    //test_resize("data/bad.jpg");
-    //test_box();
-    //test_convolutional_layer();
-    if(argc < 2){
-        fprintf(stderr, "usage: %s <function>\n", argv[0]);
-        return 0;
-    }
     gpu_index = find_int_arg(argc, argv, "-i", 0);
     if(find_arg(argc, argv, "-nogpu")) {
         gpu_index = -1;
@@ -418,7 +490,7 @@ int main(int argc, char **argv)
         cuda_set_device(gpu_index);
     }
 #endif
-
+    /*
     if (0 == strcmp(argv[1], "average")){
         average(argc, argv);
     } else if (0 == strcmp(argv[1], "yolo")){
@@ -427,6 +499,7 @@ int main(int argc, char **argv)
         run_super(argc, argv);
     } else if (0 == strcmp(argv[1], "lsd")){
         run_lsd(argc, argv);
+    //./darknet detector test cfg/coco.data cfg/yolov3.cfg yolov3.weights data/dog.jpg
     } else if (0 == strcmp(argv[1], "detector")){
         run_detector(argc, argv);
     } else if (0 == strcmp(argv[1], "detect")){
@@ -497,7 +570,16 @@ int main(int argc, char **argv)
         test_resize(argv[2]);
     } else {
         fprintf(stderr, "Not an option: %s\n", argv[1]);
-    }
-    return 0;
+    }*/
+  //xk20181017 trying to make a ROS package
+  char *filename = "scripts/test_file/test_image/058.jpg";
+  char *outfile = "scripts/test_file/result/58_result";
+  char *datacfg_kevin = "cfg/voc.data";
+  char *cfgfile_kevin = "cfg/yolov3-tiny.cfg";
+  char *weightfile_kevin = "backup/20181016backupForDetectingCar/yolov3-tiny_440000.weights";
+  
+  predict_xk(datacfg_kevin, cfgfile_kevin, weightfile_kevin, filename, .5, .5, outfile, 0);
+  //demo(datacfg_kevin, weightfile_kevin, .5, 0, filename, names, classes, frame_skip, prefix, avg, hier_thresh, width, height, fps, fullscreen);
+  return 0;
 }
 

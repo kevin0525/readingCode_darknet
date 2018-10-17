@@ -799,6 +799,8 @@ size_t rand_size_t();
 float rand_normal();
 float rand_uniform(float min, float max);
 
+
+void predict_xk(char *datacfg, char *cfgfile, char *weightfile, char *filename, float thresh, float hier_thresh, char *outfile, int fullscreen);
 #ifdef __cplusplus
 }
 #endif

@@ -54,7 +54,7 @@ void do_nms_obj(detection *dets, int total, int classes, float thresh)
     }
 }
 
-
+//xk20181017
 void do_nms_sort(detection *dets, int total, int classes, float thresh)
 {
     int i, j, k;

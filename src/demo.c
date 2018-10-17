@@ -211,14 +211,14 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 
     if(filename){
         printf("video file: %s\n", filename);
-        cap = open_video_stream(filename, 0, 0, 0, 0);
+        cap = open_video_stream(filename, 0, 0, 0, 0);//image_opencv.cpp 69
     }else{
         cap = open_video_stream(0, cam_index, w, h, frames);
     }
 
     if(!cap) error("Couldn't connect to webcam.\n");
 
-    buff[0] = get_image_from_stream(cap);
+    buff[0] = get_image_from_stream(cap);//src/image_opencv.cpp 81
     buff[1] = copy_image(buff[0]);
     buff[2] = copy_image(buff[0]);
     buff_letter[0] = letterbox_image(buff[0], net->w, net->h);

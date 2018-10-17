@@ -545,7 +545,7 @@ int show_image(image p, const char *name, int ms)
     return -1;
 #endif
 }
-
+//xk20181017
 void save_image_options(image im, const char *name, IMTYPE f, int quality)
 {
     char buff[256];
@@ -566,14 +566,14 @@ void save_image_options(image im, const char *name, IMTYPE f, int quality)
     if(f == PNG)       success = stbi_write_png(buff, im.w, im.h, im.c, data, im.w*im.c);
     else if (f == BMP) success = stbi_write_bmp(buff, im.w, im.h, im.c, data);
     else if (f == TGA) success = stbi_write_tga(buff, im.w, im.h, im.c, data);
-    else if (f == JPG) success = stbi_write_jpg(buff, im.w, im.h, im.c, data, quality);
+    else if (f == JPG) success = stbi_write_jpg(buff, im.w, im.h, im.c, data, quality);  //src/stb_image_write.h 1471
     free(data);
     if(!success) fprintf(stderr, "Failed to write image %s\n", buff);
 }
-
+//xk 20181017
 void save_image(image im, const char *name)
 {
-    save_image_options(im, name, JPG, 80);
+    save_image_options(im, name, JPG, 80);  //在上面  image.c  549
 }
 
 void show_image_layers(image p, char *name)
@@ -1317,9 +1317,9 @@ image load_image_stb(char *filename, int channels)
 image load_image(char *filename, int w, int h, int c)
 {
 #ifdef OPENCV
-    image out = load_image_cv(filename, c);
+    image out = load_image_cv(filename, c); //src/image_opencv.cpp 90
 #else
-    image out = load_image_stb(filename, c);
+    image out = load_image_stb(filename, c);  //1293
 #endif
 
     if((h && w) && (h != out.h || w != out.w)){
@@ -1332,7 +1332,7 @@ image load_image(char *filename, int w, int h, int c)
 //xk20181016
 image load_image_color(char *filename, int w, int h)
 {
-    return load_image(filename, w, h, 3);
+    return load_image(filename, w, h, 3);  //src/image.c 1317
 }
 
 image get_image_layer(image m, int l)
